@@ -1,0 +1,49 @@
+version: '3.8'
+services:
+  vue-app:
+    container_name: vue
+    build: ./Frontend
+    ports:
+      - "80:80"
+    networks:
+        - network
+    depends_on:
+      - springboot-app
+
+  springboot-app:
+    build: ./backend
+    container_name: springboot
+    ports:
+      - "8080:8080"
+    networks:
+        - network
+    environment:
+      SPRING_DATASOURCE_URL: ${DOCKER_DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      AZURE_STORAGE_CONNECTION_STRING: ${AZURE_STORAGE_CONNECTION_STRING}
+    depends_on:
+      - db
+
+  db:
+    image: mysql:latest
+    container_name: db
+    ports:
+      - "3307:3306"
+    networks:
+      - network
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DB}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - db-data:/var/lib/mysql
+
+volumes:
+  db-data:
+
+networks:
+    network:
+        driver: bridge
